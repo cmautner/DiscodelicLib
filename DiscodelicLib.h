@@ -26,22 +26,38 @@ class Discodelic {
 public:
 
   /*
-   * Must be called from Arduino setup()
+   * Call from Arduino setup() to initialize Discodelic Cube.
    */
   void setup(void);
   /*
-   * Must be called from Arduino loop()
+   * Call from Arduino loop() to update LEDs.
    */
   void refresh(void);
   /*
-   * Dump the specified panel ()
+   * Retrieve a pointer to the desired Panel. The pointer can then be used to retrieve
+   * rows of type Vector, and LEDs of type Pixel.
+   * Parameters:
+   *  frameNdx: FrameId indicating which animation frame to retrieve the Panel from.
+   *  panelNdx: PanelId indicating which Panel to retrieve.
+   * Return:
+   *  Panel *
+   */
+  Panel *getPanel(FrameId frameNdx, PanelId panelNdx);
+  /*
+   * Indicate to the refresh() method that the new frame is ready for presenting.
+   */
+  void swapBuffers(void);
+  /*
+   * Diagnostic dump of the specified panel.
+   * Parameters:
+   *  frameNdx: FrameId indicating which animation frame to dump.
+   *  panelNdx: PanelId indicating which panel to dump.
    */
   void dumpPanel(FrameId frameNdx, PanelId panelNdx);
+  /*
+   * Dump all the panels.
+   */
   void dumpAllPanels(void);
-  Panel *getPanel(FrameId frameNdx, PanelId panelNdx);
-  void swapBuffers(void);
-
-private:
 };
 
 extern const int SWITCH;  // High or low for user input

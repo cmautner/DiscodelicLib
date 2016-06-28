@@ -34,7 +34,7 @@ const char * panelStrings[] = {
   "PANEL_RIGHT"
 };
 
-void Discodelic::setup () {
+void Discodelic::setup() {
 	
   // Set the pin directions for ports C (SCL, SDA, row select) and B (BLANK_, LAT)
   pinMode(SWITCH, INPUT_PULLUP); // Set IO7 as input
@@ -90,7 +90,8 @@ void Discodelic::setup () {
 
 }
 
-
+// Dimming is done by looking at the R, G, or B value and then choosing to turn on the LED or not based
+// on the dimmingSchedule bit mask.
 static uint8_t refreshNdx;
 static uint8_t rowNdx;
 
@@ -99,11 +100,11 @@ static uint8_t rowNdx;
 #if (NUM_DIM_BITS == 4)
 
 //           cycle
-//val   0123 4567 89AB CDEF
-//0000  0000 0000 0000 0000
-//0001  1000 0000 0000 0000
-//0010  1000 0000 1000 0000
-//0011  1000 0010 0001 0000
+//val   0123 4567 89AB CDEF =HEX
+//0000  0000 0000 0000 0000 =0x0000
+//0001  1000 0000 0000 0000 =0x8000
+//0010  1000 0000 1000 0000 =0x8080
+//0011  1000 0010 0001 0000 =0x8210
 //
 //0100  1000 1000 1000 1000
 //0101  1000 1001 0010 0100
@@ -124,27 +125,34 @@ const uint16_t dimmingSchedule[16] = {
   0x0000, 0x8000, 0x8080, 0x8210,
   0x8888, 0x8924, 0x9292, 0x954a,
   0x6ab5, 0x6d6d, 0x76db, 0x7777,
-  0x7def, 0x7f7f, 0x7fff, 0xffff};
+  0x7def, 0x7f7f, 0x7fff, 0xffff
+};
 
 #elif (NUM_DIM_BITS == 2)
 //           cycle
-//val   0123
-//0000  0000
-//0001  1000
-//0010  1010
-//0011  1111
+//val   0123 =HEX
+//0000  0000 =0x0
+//0001  1000 =0x8
+//0010  1010 =0xa
+//0011  1111 =0xf
 
 const uint16_t dimmingSchedule[4] = {
-  0x0, 0x8, 0xa, 0xf};
+  0x0, 0x8, 0xa, 0xf
+};
 #endif
 
-
+/*
+ * Clock out one row of data into the shift registers. Only turn the led on
+ * if the R, G, or B lookup value bit is set in this refresh cycle.
+ */
 void Discodelic::refresh(void) {
   if (++rowNdx >= NUM_ROWS) {
     rowNdx = 0;
+    // After all of the rows have been clocked out, increment the refresh cycle.
     if (++refreshNdx >= NUM_REFRESHES) {
       refreshNdx = 0;
 
+      // Switch frame buffers at the end of a refresh cycle if needed.
       if (switchBuffers) {
         int oldLoopFrameNdx = loopFrameNdx;
         loopFrameNdx = animateFrameNdx;
@@ -154,12 +162,11 @@ void Discodelic::refresh(void) {
     }
   }
 
-  uint8_t frameNdx = loopFrameNdx;
   // Clock out one entire row
   const int cycleBit = 1 << refreshNdx;
   
   for (int panelNdx = PANEL_FIRST; panelNdx < NUM_PANELS; ++panelNdx) {
-    Panel *panel = &panels[frameNdx][panelNdx];
+    Panel *panel = &panels[loopFrameNdx][panelNdx];
     // Clock out the row starting at the far end
     Vector *pRow = panel->getShiftRow(rowNdx);
 
@@ -196,7 +203,17 @@ void Discodelic::refresh(void) {
   digitalWrite(BLANK_, LOW);
 }
 
+Panel *Discodelic::getPanel(FrameId frameNdx, PanelId panelNdx) {
+  return &panels[frameNdx == FRAME_CURRENT ? loopFrameNdx : animateFrameNdx][panelNdx];
+}
 
+void Discodelic::swapBuffers(void) {
+  switchBuffers = true;
+}
+
+/*
+ * Diagnostic output.
+ */
 void Discodelic::dumpPanel(FrameId frameNdx, PanelId panelNdx) {
   Pixel pixel;
   Serial.print("dumpPanel [");
@@ -207,7 +224,6 @@ void Discodelic::dumpPanel(FrameId frameNdx, PanelId panelNdx) {
   Panel *nextPanel = &panels[frameNdx][panelNdx];
   for (int rowNdx = 0; rowNdx < NUM_ROWS; ++rowNdx) {
     Vector *pNextRow = nextPanel->getRow(rowNdx);
-//    Serial.println((int)pNextRow, HEX);
     for (int ledNdx = 0; ledNdx < NUM_LEDS; ++ledNdx) {
       pNextRow->getLed(ledNdx, pixel);
       pixel.print();
@@ -222,12 +238,4 @@ void Discodelic::dumpAllPanels() {
       dumpPanel(frameNdx, panelNdx);
     }
   }
-}
-
-Panel *Discodelic::getPanel(FrameId frameNdx, PanelId panelNdx) {
-  return &panels[frameNdx == FRAME_CURRENT ? loopFrameNdx : animateFrameNdx][panelNdx];
-}
-
-void Discodelic::swapBuffers(void) {
-  switchBuffers = true;
 }

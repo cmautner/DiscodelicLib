@@ -3,9 +3,10 @@
 
 #include <avr/io.h>
 
-#define NUM_DIM_BITS 2
-#define DIM_MASK ((1 << NUM_DIM_BITS) - 1)
-#define MAX_BRIGHT DIM_MASK
+#define NUM_DIM_BITS (2)
+#define NUM_DIM_LEVELS (1 << NUM_DIM_BITS)
+#define DIM_MASK (NUM_DIM_LEVELS - 1)
+#define MAX_BRIGHT (DIM_MASK)
 
 // In shift order, based on hardware.
 enum PixelColor { FIRST_COLOR = 0, GREEN = FIRST_COLOR, RED, BLUE, NUM_COLORS };

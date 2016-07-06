@@ -29,4 +29,4 @@ private:
   Orientation m_orientation = UP;
 };
 
-#endif // PANEL_H 
+#endif // PANEL_H

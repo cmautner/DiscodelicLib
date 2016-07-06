@@ -22,8 +22,8 @@ volatile uint8_t animateFrameNdx;
 volatile bool switchBuffers = false;
 
 const char * pingPongStrings[] = {
-  "PING",
-  "PONG"
+  "CURRENT",
+  "NEXT"
 };
 
 const char * panelStrings[] = {
@@ -35,7 +35,7 @@ const char * panelStrings[] = {
 };
 
 void Discodelic::setup() {
-	
+
   // Set the pin directions for ports C (SCL, SDA, row select) and B (BLANK_, LAT)
   pinMode(SWITCH, INPUT_PULLUP); // Set IO7 as input
   DDRC = DDRC_INIT;
@@ -164,7 +164,7 @@ void Discodelic::refresh(void) {
 
   // Clock out one entire row
   const int cycleBit = 1 << refreshNdx;
-  
+
   for (int panelNdx = PANEL_FIRST; panelNdx < NUM_PANELS; ++panelNdx) {
     Panel *panel = &panels[loopFrameNdx][panelNdx];
     // Clock out the row starting at the far end
@@ -217,11 +217,11 @@ void Discodelic::swapBuffers(void) {
 void Discodelic::dumpPanel(FrameId frameNdx, PanelId panelNdx) {
   Pixel pixel;
   Serial.print("dumpPanel [");
-  Serial.print(pingPongStrings[frameNdx]);
+  Serial.print(pingPongStrings[frameNdx == FRAME_CURRENT ? 0 : 1]);
   Serial.print("][");
   Serial.print(panelStrings[panelNdx]);
   Serial.println("]");
-  Panel *nextPanel = &panels[frameNdx][panelNdx];
+  Panel *nextPanel = &panels[frameNdx == FRAME_CURRENT ? loopFrameNdx : animateFrameNdx][panelNdx];
   for (int rowNdx = 0; rowNdx < NUM_ROWS; ++rowNdx) {
     Vector *pNextRow = nextPanel->getRow(rowNdx);
     for (int ledNdx = 0; ledNdx < NUM_LEDS; ++ledNdx) {

@@ -10,6 +10,8 @@
 
 // In shift order, based on hardware.
 enum PixelColor { FIRST_COLOR = 0, GREEN = FIRST_COLOR, RED, BLUE, NUM_COLORS };
+inline PixelColor operator++(PixelColor& x) { return x = (PixelColor)(((int)(x) + 1)); };
+
 class Pixel {
 public:
   Pixel(uint8_t _red = 0, uint8_t _green = 0, uint8_t _blue = 0) : red(_red), green(_green), blue(_blue) { }

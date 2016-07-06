@@ -19,6 +19,9 @@ public:
   }
   void setOrientation(Orientation orientation) {
     m_orientation = orientation;
+    for (int rowNdx = 0; rowNdx < NUM_ROWS; ++rowNdx) {
+      rows[rowNdx].setOrientation(orientation);
+    }
   }
   bool isOrientedUp() {
     return m_orientation == UP;

@@ -23,7 +23,8 @@ class Vector {
     uint16_t leds[NUM_COLORS];
 #endif
     void setLed(int ledNdx, Pixel &pixel) {
-      uint8_t shiftValue = NUM_DIM_BITS * (NUM_LEDS - 1 - ledNdx);
+      uint8_t shiftPosition = m_orientation == UP ? (NUM_LEDS - 1 - ledNdx) : ledNdx;
+      uint8_t shiftValue = NUM_DIM_BITS * shiftPosition;
       uint32_t mask = ~(((uint32_t)DIM_MASK) << shiftValue);
       leds[RED] &= mask;
       leds[RED] |= (uint32_t)pixel.red << shiftValue;
@@ -40,6 +41,14 @@ class Vector {
       pixel.blue = leds[BLUE] >> shiftValue;
     }
 
+    void setOrientation(Orientation orientation) {
+      m_orientation = orientation;
+    }
+
+    bool isOrientedUp() {
+      return m_orientation == UP;
+    }
+
     void print() {
       Serial.print(leds[RED], HEX);
       Serial.print("-");
@@ -47,6 +56,9 @@ class Vector {
       Serial.print("-");
       Serial.println(leds[BLUE], HEX);
     }
+
+  private:
+    Orientation m_orientation = UP;
 };
 
 #endif // VECTOR_H

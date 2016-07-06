@@ -95,7 +95,7 @@ void Discodelic::setup() {
 static uint8_t refreshNdx;
 static uint8_t rowNdx;
 
-#define NUM_REFRESHES (1 << NUM_DIM_BITS)
+#define NUM_REFRESHES (6)
 
 #if (NUM_DIM_BITS == 4)
 
@@ -121,7 +121,7 @@ static uint8_t rowNdx;
 //1110  0111 1111 1111 1111
 //1111  1111 1111 1111 1111
 
-const uint16_t dimmingSchedule[16] = {
+const uint16_t dimmingSchedule[NUM_DIM_LEVELS] = {
   0x0000, 0x8000, 0x8080, 0x8210,
   0x8888, 0x8924, 0x9292, 0x954a,
   0x6ab5, 0x6d6d, 0x76db, 0x7777,
@@ -130,14 +130,14 @@ const uint16_t dimmingSchedule[16] = {
 
 #elif (NUM_DIM_BITS == 2)
 //           cycle
-//val   0123 =HEX
-//0000  0000 =0x0
-//0001  1000 =0x8
-//0010  1010 =0xa
-//0011  1111 =0xf
+//val   012345 =HEX
+//0000  000000 =0x00
+//0001  100000 =0x20
+//0010  100100 =0x24
+//0011  111111 =0x3f
 
-const uint16_t dimmingSchedule[4] = {
-  0x0, 0x8, 0xa, 0xf
+const uint16_t dimmingSchedule[NUM_DIM_LEVELS] = {
+  0x00, 0x20, 0x24, 0x3f
 };
 #endif
 
@@ -170,7 +170,7 @@ void Discodelic::refresh(void) {
     // Clock out the row starting at the far end
     Vector *pRow = panel->getShiftRow(rowNdx);
 
-    for (int color = FIRST_COLOR; color < NUM_COLORS; ++color) {
+    for (PixelColor color = FIRST_COLOR; color < NUM_COLORS; ++color) {
       uint32_t leds = pRow->leds[color];
       // invariant: SCLK is low
       for (int ledNdx = 0; ledNdx < NUM_LEDS; ++ledNdx, leds >>=  NUM_DIM_BITS) {

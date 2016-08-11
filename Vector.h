@@ -34,8 +34,38 @@ class Vector {
       leds[BLUE] |= (uint32_t)pixel.blue << shiftValue;
     }
 
+    /*
+     * parameters:
+     *  color - MSB 5 bits red, 6 bits green, 5 bits red LSB
+     */
+    void setLed(int ledNdx, uint16_t color) {
+      uint8_t shiftPosition = m_orientation == UP ? (NUM_LEDS - 1 - ledNdx) : ledNdx;
+      uint8_t shiftValue = NUM_DIM_BITS * shiftPosition;
+      uint32_t mask = ~(((uint32_t)DIM_MASK) << shiftValue);
+
+      leds[RED] &= mask;
+      leds[RED] |= (color & 0xc000) >>  (14 - shiftValue);
+
+      leds[GREEN] &= mask;
+      int16_t finalShift = 9 - shiftValue;
+      if (finalShift < 0) {
+        leds[GREEN] |= (color & 0x0600) << (-finalShift);
+      } else {
+        leds[GREEN] |= (color & 0x0600) >>  finalShift;
+      }
+ 
+      leds[BLUE] &= mask;
+      finalShift = 3 - shiftValue;
+      if (finalShift < 0) {
+        leds[BLUE] |= (color & 0x001f) << (-finalShift);
+      } else {
+        leds[BLUE] |= (color & 0x001f) >>  finalShift;
+      }
+    }
+
     void getLed(int ledNdx, Pixel &pixel) {
-      uint8_t shiftValue = NUM_DIM_BITS * (NUM_LEDS - 1 - ledNdx);
+      uint8_t shiftPosition = m_orientation == UP ? (NUM_LEDS - 1 - ledNdx) : ledNdx;
+      uint8_t shiftValue = NUM_DIM_BITS * shiftPosition;
       pixel.red = leds[RED] >> shiftValue;
       pixel.green = leds[GREEN] >> shiftValue;
       pixel.blue = leds[BLUE] >> shiftValue;

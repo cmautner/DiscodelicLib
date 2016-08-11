@@ -207,8 +207,14 @@ Panel *Discodelic::getPanel(FrameId frameNdx, PanelId panelNdx) {
   return &panels[frameNdx == FRAME_CURRENT ? loopFrameNdx : animateFrameNdx][panelNdx];
 }
 
-void Discodelic::swapBuffers(void) {
-  switchBuffers = true;
+void Discodelic::swapBuffers(bool immediate) {
+  if (immediate) {
+    int oldLoopFrameNdx = loopFrameNdx;
+    loopFrameNdx = animateFrameNdx;
+    animateFrameNdx = oldLoopFrameNdx;
+  } else {
+    switchBuffers = true;
+  }
 }
 
 /*

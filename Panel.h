@@ -5,6 +5,18 @@
 
 const uint8_t NUM_ROWS = 8;
 
+// In order from last shift register (first data shifted in) to first.
+enum PanelId {
+  PANEL_FIRST = 0,
+  PANEL_BACK = 0,
+  PANEL_TOP,
+  PANEL_LEFT,
+  PANEL_FRONT,
+  PANEL_RIGHT,
+  NUM_PANELS
+};
+inline PanelId operator++(PanelId& x) { return x = (PanelId)(((int)(x) + 1)); };
+
 /*
  * A set of Vectors, one per row, corresponding to one face of the Cube.
  */
@@ -14,9 +26,11 @@ public:
   Vector *getRow(int rowNdx) {
     return &rows[rowNdx];
   }
+
   Vector *getShiftRow(int rowNdx) {
     return &rows[m_orientation == UP ? rowNdx : NUM_ROWS - rowNdx - 1];
   }
+
   void setOrientation(Orientation orientation) {
     m_orientation = orientation;
     for (int rowNdx = 0; rowNdx < NUM_ROWS; ++rowNdx) {

@@ -41,4 +41,9 @@ public:
   }
 };
 
+#define RGB2color(red, green, blue) \
+  (((red) << (16 - NUM_DIM_BITS)) | \
+    ((green) << (11 - NUM_DIM_BITS)) | \
+    ((blue) << (5 - NUM_DIM_BITS)))
+
 #endif // PIXEL_H

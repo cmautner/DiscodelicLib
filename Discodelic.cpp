@@ -1,7 +1,8 @@
 #include "DiscodelicLib.h"
 
-// Singleton
+// Singletons
 Discodelic Discodelic1;
+DiscodelicGfx DiscodelicGfx1 = Discodelic1.mDiscodelicGfx;
 
 const uint8_t DDRC_INIT = 0x37; // PC0-2, 4-5 as outputs. All others as inputs
 const uint8_t DDRB_INIT = 0x23; // PB0-1,5 as outputs. All others as inputs

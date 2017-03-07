@@ -11,6 +11,11 @@ enum FrameId {
 };
 inline FrameId operator++(FrameId& x) { return x = (FrameId)(((int)(x) + 1)); };
 
+// In preparation for wrapping around entire cube
+const int WIDE_PANEL = 0x8000;
+const int PANEL_SHIFT = 15;
+const int PANEL_MASK = 0x7 << PANEL_SHIFT;
+
 class Discodelic {
   public:
 
@@ -22,6 +27,13 @@ class Discodelic {
         }
 
         void drawPixel(int16_t x, int16_t y, uint16_t color) {
+          Panel *pPanel;
+
+          bool widePanel = x & WIDE_PANEL;
+          if (widePanel) {
+            pPanel = mDiscodelic.getPanel(FRAME_NEXT,
+              static_cast<PanelId>((x & PANEL_MASK) >> PANEL_SHIFT));
+          }
           if ((x < 0) || (x >= NUM_LEDS) || (y < 0) || (y >= NUM_ROWS)) {
             return;
           }
@@ -94,5 +106,6 @@ typedef Discodelic::Discodelic_GFX DiscodelicGfx;
 extern const int SWITCH;  // High or low for user input
 
 extern Discodelic Discodelic1;
+extern DiscodelicGfx DiscodelicGfx1;
 
 #endif // DISCODELIC_LIB_H

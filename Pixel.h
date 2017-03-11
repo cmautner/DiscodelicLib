@@ -30,15 +30,32 @@ public:
     }
     return *this;
   }
+
+  bool operator== (const Pixel & other) {
+    if (this == &other) {
+      return true;
+    }
+    return (red == other.red) && (green = other.green) && (blue == other.blue);
+  }
+
   void print(const char *prefix = "") {
     Serial.print(prefix);
-    Serial.print(green, HEX);
-    Serial.print("-");
-    Serial.print(red, HEX);
-    Serial.print("-");
-    Serial.print(blue, HEX);
+    Serial.print(pixel2color(*this), HEX);
     Serial.print(" ");
   }
+
+  static uint16_t pixel2color(Pixel &pixel) {
+    return (pixel.red << (16 - NUM_DIM_BITS)) |
+      (pixel.green << (11 - NUM_DIM_BITS)) |
+      (pixel.blue << (5 - NUM_DIM_BITS));
+  }
+
+  static Pixel *color2pixel(uint16_t color) {
+    return new Pixel(color >> (16 - NUM_DIM_BITS),
+      (color >> (11 - NUM_DIM_BITS)) & DIM_MASK,
+      (color >> (5 - NUM_DIM_BITS)) & DIM_MASK);
+  }
+
 };
 
 #define RGB2color(red, green, blue) \
@@ -47,3 +64,4 @@ public:
     ((blue) << (5 - NUM_DIM_BITS)))
 
 #endif // PIXEL_H
+

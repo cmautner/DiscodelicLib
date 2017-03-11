@@ -4,6 +4,7 @@
 #include "Vector.h"
 
 const uint8_t NUM_ROWS = 8;
+const uint8_t ROWS_MASK = NUM_ROWS - 1;
 
 // In order from last shift register (first data shifted in) to first.
 enum PanelId {

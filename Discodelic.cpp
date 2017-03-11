@@ -71,7 +71,7 @@ void Discodelic::setup() {
   for (int panelNdx = PANEL_FIRST; panelNdx < NUM_PANELS; ++panelNdx) {
     for (int rowNdx = 0; rowNdx < NUM_ROWS; ++rowNdx) {
       for (int ledNdx = 0; ledNdx < NUM_LEDS; ++ledNdx) {
-        if (((rowNdx == 0) && (ledNdx == 0)) || ((rowNdx == 7) && (ledNdx == 7))) {
+        if (((rowNdx == 0) && (ledNdx == 0)) || ((rowNdx == MAX_LED) && (ledNdx == MAX_LED))) {
           Vector *pVector = panels[PONG][panelNdx].getRow(rowNdx);
           Pixel pixel(rand(), rand(), rand());
           pVector->setLed(ledNdx, pixel);
@@ -206,6 +206,87 @@ void Discodelic::refresh(void) {
 
 Panel *Discodelic::getPanel(FrameId frameNdx, PanelId panelNdx) {
   return &panels[frameNdx == FRAME_CURRENT ? loopFrameNdx : animateFrameNdx][panelNdx];
+}
+
+/*
+ * Modify the colors of pixel1 to be the average of the colors of pixel1 and pixel2.
+ * If either of the colors are the background color, just use the background color.
+ */
+void averagePixels(Pixel &pixel1, Pixel &pixel2, uint16_t textbgcolor) {
+  if (textbgcolor == Pixel::pixel2color(pixel2)) {
+    // Leave pixel1 unchanged.
+    return;
+  } else if (textbgcolor == Pixel::pixel2color(pixel1)) {
+    // Assign pixel2 to pixel1.
+    pixel1 = pixel2;
+    return;
+  }
+  // both valid colors, average them.
+  int red = (pixel1.red + pixel2.red) / 2;
+  int green = (pixel1.green + pixel2.green) / 2;
+  int blue = (pixel1.blue + pixel2.blue) / 2;
+  pixel1.set(red, green, blue);
+}
+
+/*
+ * The edges of the top panel are neighbors to the top row of each side. This function
+ * assigns the colors of the neighbor pixel (or pixels for corners) of PANEL_TOP(x,y)
+ * to pixel. It does nothing if x,y are not edges of PANEL_TOP.
+ */
+void Discodelic::getTopPanelNeighborPixel(Pixel &pixel, uint16_t xTop, uint16_t yTop) {
+  Panel *pPanel;
+  Vector *pRow;
+
+  // Used if x,y specifies a corner.
+  Panel *pSecondPanel = NULL;
+  uint8_t secondColumn;
+
+  if (xTop == 0) {
+    // above PANEL_LEFT
+    pPanel = getPanel(FRAME_NEXT, PANEL_LEFT);
+    pRow = pPanel->getRow(0);
+    pRow->getLed(yTop, pixel);
+    if (yTop == 0) {
+      // Also above PANEL_BACK
+      pSecondPanel = getPanel(FRAME_NEXT, PANEL_BACK);
+      secondColumn = MAX_LED;
+    } else if (yTop == MAX_LED) {
+      // Also above PANEL_FRONT
+      pSecondPanel = getPanel(FRAME_NEXT, PANEL_BACK);
+      secondColumn = 0;
+    }
+  } else if (xTop == MAX_LED) {
+    // above PANEL_RIGHT
+    pPanel = getPanel(FRAME_NEXT, PANEL_RIGHT);
+    pRow = pPanel->getRow(0);
+    pRow->getLed(MAX_LED - yTop, pixel);
+    if (yTop == 0) {
+      // Also above PANEL_BACK
+      pSecondPanel = getPanel(FRAME_NEXT, PANEL_BACK);
+      secondColumn = 0;
+    } else if (yTop == MAX_LED) {
+      // Also above PANEL_FRONT
+      pSecondPanel = getPanel(FRAME_NEXT, PANEL_FRONT);
+      secondColumn = MAX_LED;
+    }
+  } else if (yTop == 0) {
+    // above PANEL_BACK
+    pPanel = getPanel(FRAME_NEXT, PANEL_BACK);
+    pRow = pPanel->getRow(0);
+    pRow->getLed(MAX_LED - xTop, pixel);
+  } else if (yTop == MAX_LED) {
+    // above PANEL_FRONT
+    pPanel = getPanel(FRAME_NEXT, PANEL_FRONT);
+    pRow = pPanel->getRow(0);
+    pRow->getLed(xTop, pixel);
+  }
+
+  if (pSecondPanel != NULL) {
+    Pixel otherPixel;
+    pRow = pSecondPanel->getRow(0);
+    pRow->getLed(secondColumn, otherPixel);
+    averagePixels(pixel, otherPixel, DiscodelicGfx1.getTextBgColor());
+  }
 }
 
 void Discodelic::swapBuffers(bool immediate) {

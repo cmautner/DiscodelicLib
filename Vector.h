@@ -5,6 +5,8 @@
 #include "Pixel.h"
 
 const uint8_t NUM_LEDS = 8;
+const uint8_t LEDS_MASK = NUM_LEDS - 1;
+const uint8_t MAX_LED = NUM_LEDS - 1;
 
 // The direction that the cables cause the LED array to be oriented. Some
 // panels are oriented up, some down.

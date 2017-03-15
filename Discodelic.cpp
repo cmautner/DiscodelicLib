@@ -1,3 +1,4 @@
+#include <TimerOne.h>
 #include "DiscodelicLib.h"
 
 // Singletons
@@ -18,9 +19,11 @@ enum PingPongBuffers {
   NUM_BUFFERS
 };
 Panel panels[NUM_BUFFERS][NUM_PANELS];
-volatile uint8_t loopFrameNdx;
-volatile uint8_t animateFrameNdx;
-volatile bool switchBuffers = false;
+static volatile uint8_t loopFrameNdx;
+static volatile uint8_t animateFrameNdx;
+static volatile bool switchBuffers = false;
+bool (*Discodelic::sCallback)();
+
 
 const char * pingPongStrings[] = {
   "CURRENT",
@@ -34,6 +37,31 @@ const char * panelStrings[] = {
   "PANEL_FRONT",
   "PANEL_RIGHT"
 };
+
+void Discodelic::animateFrame() {
+  if (sCallback == NULL) {
+    return;
+  }
+
+  // Turn off outputs (may already be off)
+  int blanked = digitalRead(BLANK_);
+  digitalWrite(BLANK_, HIGH);
+
+  if ((*sCallback)()) {
+    swapBuffers(false);
+  }
+
+  if (blanked == LOW) {
+    // Turn output back on
+    digitalWrite(BLANK_, LOW);
+  }
+}
+
+void Discodelic::registerCallback(unsigned long updatePeriod, bool (*callback)()) {
+  sCallback = callback;
+  Timer1.initialize(updatePeriod);
+  Timer1.attachInterrupt(Discodelic::animateFrame);
+}
 
 void Discodelic::setup() {
 
@@ -87,8 +115,6 @@ void Discodelic::setup() {
   // Set SCLK high and BLANK low
   digitalWrite(SCL, HIGH);
   digitalWrite(BLANK_, LOW);
-
-
 }
 
 // Dimming is done by looking at the R, G, or B value and then choosing to turn on the LED or not based

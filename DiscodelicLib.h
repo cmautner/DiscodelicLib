@@ -26,6 +26,18 @@ const uint8_t WIDE_PANEL_END = WIDE_PANEL_BACK_START + NUM_LEDS;
 
 class Discodelic {
   public:
+    static bool (*sCallback)();
+    static void animateFrame();
+    /*
+     * Set the frame period and the function to call to animate.
+     * updatePeriod: in microseconds.
+     * callback: return true to swap frames, false to continue with same frame.
+     */
+    static void registerCallback(unsigned long updatePeriod, bool (*callback)());
+    /*
+     * Indicate to the refresh() method that the new frame is ready for presenting.
+     */
+    static void swapBuffers(bool immediate = false);
 
     class Discodelic_GFX : public Adafruit_GFX {
 
@@ -120,10 +132,6 @@ class Discodelic {
      * unless one of the pixels is the text background color.
      */
     void getTopPanelNeighborPixel(Pixel &pixel, uint16_t x, uint16_t y);
-    /*
-     * Indicate to the refresh() method that the new frame is ready for presenting.
-     */
-    void swapBuffers(bool immediate = false);
     /*
      * Diagnostic dump of the specified panel.
      * Parameters:
